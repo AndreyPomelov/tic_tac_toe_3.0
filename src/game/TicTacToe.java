@@ -10,7 +10,7 @@ import java.util.Scanner;
 /**
  * Игра "Крестики-нолики"
  *
- * @version 2.0
+ * @version 3.0
  * @author Andrey Pomelov
  */
 public class TicTacToe {
@@ -67,7 +67,8 @@ public class TicTacToe {
         System.out.println("Игра \"Крестики-нолики\".");
 
         // Создаём поле для игры.
-        field = new GameField(getFieldSize());
+        int fieldSize = getFieldSize();
+        field = new GameField(fieldSize, getWinLength(fieldSize));
 
         // Создаём и добавляем в игру двоих игроков.
         PLAYERS.add(new HumanPlayer("Игрок 1", PlayerSymbol.X));
@@ -75,6 +76,29 @@ public class TicTacToe {
 
         // Отрисовываем игровое поле.
         field.repaint();
+    }
+
+    /**
+     * Выбор игроком длины выигрышной комбинации.
+     *
+     * @param fieldSize размер игрового поля.
+     * @return          длина выигрышной комбинации.
+     */
+    private static int getWinLength(int fieldSize) {
+        int winLength = 0;
+        Scanner scanner = new Scanner(System.in);
+
+        do {
+            System.out.printf("Введите длину выигрышной комбинации (от 3 до %s).\n", fieldSize);
+
+            try {
+                winLength = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                // Игнорируем ошибку парсинга введённой строки в число.
+            }
+        } while (winLength < 3 || winLength > fieldSize);
+
+        return winLength;
     }
 
     /**

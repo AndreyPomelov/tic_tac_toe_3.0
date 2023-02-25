@@ -23,12 +23,19 @@ public class GameField {
     private final int FIELD_SIZE;
 
     /**
+     * Длина выигрышной комбинации
+     */
+    private final int WIN_LENGTH;
+
+    /**
      * Конструктор
      *
      * @param fieldSize размер игрового поля
+     * @param winLength длина выигрышной комбинации
      */
-    public GameField(int fieldSize) {
+    public GameField(int fieldSize, int winLength) {
         this.FIELD_SIZE = fieldSize;
+        this.WIN_LENGTH = winLength;
         initialize();
     }
 
@@ -103,7 +110,7 @@ public class GameField {
      *
      * @return true, если поле полностью заполнено символами игроков
      */
-    boolean isFieldFull() {
+    public boolean isFieldFull() {
         for (char[] row : field) {
             for (char cell : row) {
                 if (cell == EMPTY_CELL) {
@@ -120,76 +127,111 @@ public class GameField {
      * @param symbol    символ игрока
      * @return          true, если выигрышная комбинация присутствует на поле
      */
-    boolean isWin(char symbol) {
-        return checkRows(symbol) || checkColumns(symbol) || checkDiagonals(symbol);
-    }
-
-    /**
-     * Проверка, присутствует ли в каком-либо ряду выигрышная комбинация
-     *
-     * @param symbol    символ игрока
-     * @return          true, если выигрышная комбинация присутствует в каком-либо ряду
-     */
-    boolean checkRows(char symbol) {
-        int symbolCounter;
+    public boolean isWin(char symbol) {
         for (int i = 0; i < FIELD_SIZE; i++) {
-            symbolCounter = 0;
             for (int j = 0; j < FIELD_SIZE; j++) {
-                if (field[i][j] == symbol) {
-                    symbolCounter++;
+                if (checkUpRightDiagonal(i, j, symbol) || checkDownRightDiagonal(i, j, symbol)
+                        || checkRightDirection(i, j, symbol) || checkDownDirection(i, j, symbol)) {
+                    return true;
                 }
-            }
-            if (symbolCounter == FIELD_SIZE) {
-                return true;
             }
         }
         return false;
     }
 
     /**
-     * Проверка, присутствует ли в каком-либо столбце выигрышная комбинация
+     * Проверяем наличие выигрышной комбинации по направлению вверх и вправо от указанной ячейки
      *
+     * @param x         координата ячейки x
+     * @param y         координата ячейки y
      * @param symbol    символ игрока
-     * @return          true, если выигрышная комбинация присутствует в каком-либо столбце
+     * @return          true, если нашли выигрышную комбинацию
      */
-    boolean checkColumns(char symbol) {
-        int symbolCounter;
-        for (int i = 0; i < FIELD_SIZE; i++) {
-            symbolCounter = 0;
-            for (int j = 0; j < FIELD_SIZE; j++) {
-                if (field[j][i] == symbol) {
-                    symbolCounter++;
-                }
-            }
-            if (symbolCounter == FIELD_SIZE) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Проверка, присутствует ли в какой-либо диагонали выигрышная комбинация
-     *
-     * @param symbol    символ игрока
-     * @return          true, если выигрышная комбинация присутствует в какой-либо диагонали
-     */
-    boolean checkDiagonals(char symbol) {
+    private boolean checkUpRightDiagonal(int x, int y, char symbol) {
         int symbolCounter = 0;
-        for (int i = 0; i < FIELD_SIZE; i++) {
-            if (field[i][i] == symbol) {
-                symbolCounter++;
+        for (int i = 0; i < WIN_LENGTH; i++) {
+            try {
+                if (field[x++][y++] == symbol) {
+                    symbolCounter++;
+                }
+            } catch (Exception e) {
+                // Если вылетела ошибка - значит вышли за пределы поля,
+                // выигрышной комбинации нет в этом направлении
+                return false;
             }
         }
-        if (symbolCounter == FIELD_SIZE) {
-            return true;
-        }
-        symbolCounter = 0;
-        for (int i = 0; i < FIELD_SIZE; i++) {
-            if (field[i][FIELD_SIZE - i - 1] == symbol) {
-                symbolCounter++;
+        return symbolCounter == WIN_LENGTH;
+    }
+
+    /**
+     * Проверяем наличие выигрышной комбинации по направлению вниз и вправо от указанной ячейки
+     *
+     * @param x         координата ячейки x
+     * @param y         координата ячейки y
+     * @param symbol    символ игрока
+     * @return          true, если нашли выигрышную комбинацию
+     */
+    private boolean checkDownRightDiagonal(int x, int y, char symbol) {
+        int symbolCounter = 0;
+        for (int i = 0; i < WIN_LENGTH; i++) {
+            try {
+                if (field[x++][y--] == symbol) {
+                    symbolCounter++;
+                }
+            } catch (Exception e) {
+                // Если вылетела ошибка - значит вышли за пределы поля,
+                // выигрышной комбинации нет в этом направлении
+                return false;
             }
         }
-        return symbolCounter == FIELD_SIZE;
+        return symbolCounter == WIN_LENGTH;
+    }
+
+    /**
+     * Проверяем наличие выигрышной комбинации по направлению вправо от указанной ячейки
+     *
+     * @param x         координата ячейки x
+     * @param y         координата ячейки y
+     * @param symbol    символ игрока
+     * @return          true, если нашли выигрышную комбинацию
+     */
+    private boolean checkRightDirection(int x, int y, char symbol) {
+        int symbolCounter = 0;
+        for (int i = 0; i < WIN_LENGTH; i++) {
+            try {
+                if (field[x++][y] == symbol) {
+                    symbolCounter++;
+                }
+            } catch (Exception e) {
+                // Если вылетела ошибка - значит вышли за пределы поля,
+                // выигрышной комбинации нет в этом направлении
+                return false;
+            }
+        }
+        return symbolCounter == WIN_LENGTH;
+    }
+
+    /**
+     * Проверяем наличие выигрышной комбинации по направлению вниз от указанной ячейки
+     *
+     * @param x         координата ячейки x
+     * @param y         координата ячейки y
+     * @param symbol    символ игрока
+     * @return          true, если нашли выигрышную комбинацию
+     */
+    private boolean checkDownDirection(int x, int y, char symbol) {
+        int symbolCounter = 0;
+        for (int i = 0; i < WIN_LENGTH; i++) {
+            try {
+                if (field[x][y--] == symbol) {
+                    symbolCounter++;
+                }
+            } catch (Exception e) {
+                // Если вылетела ошибка - значит вышли за пределы поля,
+                // выигрышной комбинации нет в этом направлении
+                return false;
+            }
+        }
+        return symbolCounter == WIN_LENGTH;
     }
 }
